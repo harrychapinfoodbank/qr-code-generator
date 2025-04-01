@@ -1,32 +1,44 @@
-async function generateQR() {
-  const link = document.getElementById('linkInput').value;
-  const resultDiv = document.getElementById('result');
-
-  if (!link) {
-    resultDiv.innerHTML = "<p style='color:red;'>Please enter a URL.</p>";
-    return;
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  resultDiv.innerHTML = "<p>Generating QR code...</p>";
+  const { url } = req.body;
 
   try {
-    const response = await fetch('/api/generate-qr', {
+    const response = await fetch('https://me-qr.com/api/qr', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: link })
+      headers: {
+        Authorization: `Bearer 4230495c8a668fe740c987ee91c92046a883be139efed8ca38aefaaeed685557`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        url: url,
+        title: 'Generated via Form',
+        design: {
+          type: 'standard',
+          color: '#000000'
+        }
+      })
     });
 
-    const data = await response.json();
+    const text = await response.text();
 
-    if (response.ok) {
-      resultDiv.innerHTML = `
-        <p><strong>Short URL:</strong> <a href="${data.short_url}" target="_blank">${data.short_url}</a></p>
-        <img src="${data.qr_url}" alt="QR Code" />
-      `;
-    } else {
-      resultDiv.innerHTML = `<p style='color:red;'>${data.error}</p>`;
+    try {
+      const data = JSON.parse(text);
+
+      if (response.ok) {
+        return res.status(200).json({
+          short_url: data.short_url,
+          qr_url: data.qr_png
+        });
+      } else {
+        return res.status(response.status).json({ error: data.message || 'QR API error' });
+      }
+    } catch (parseError) {
+      return res.status(500).json({ error: `QR API returned invalid JSON: ${text}` });
     }
   } catch (err) {
-    resultDiv.innerHTML = `<p style='color:red;'>${err.message}</p>`;
+    return res.status(500).json({ error: `Unexpected server error: ${err.message}` });
   }
 }
