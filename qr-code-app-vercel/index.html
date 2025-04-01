@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>QR Code Generator</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    input, button { padding: 0.5rem; font-size: 1rem; }
+    img { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Generate a QR Code</h1>
+  <input type="text" id="linkInput" placeholder="Enter a URL" size="50" />
+  <button onclick="generateQR()">Generate QR</button>
+  <div id="result"></div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
